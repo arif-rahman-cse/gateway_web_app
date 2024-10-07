@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .temperature-status {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .temperature-map {
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, #720DBF 0%, #FF0017 20%, #BDFF14 40%,#29E30F 60%,#1699E0 80%, #0000FF 100%);
+            border-radius: 10px;
+            position: relative;
+            margin: 0 auto; /* Center the color bar */
+        }
+
+        .temperature-map::after {
+            content: "+";
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .temperature-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .color-scale {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .color-bar {
+            width: 450px;
+            height: 40px;
+            background: linear-gradient(to right, blue, cyan, green, yellow, red, magenta);
+            margin-right: 10px;
+            margin: 0 auto; /* Center the color bar */
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 450px;
+            margin-top: 20px;
+        }
+
+        .scale-labels div {
+            position: relative;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .scale-labels div::before {
+            content: '▲';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .percentages {
+            display: flex;
+            justify-content: space-between;
+            width: 450px;
+            margin-top: 5px;
+        }
+
+        .percentages div {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="temperature-status">
+        <p>現在の温度状態。</p>
+        <div class="temperature-map"></div>
+        <div class="temperature-value">39.5 °C</div>
+        <div class="color-scale">
+            <div class="color-bar"></div>
+        </div>
+        <div class="scale-labels" id="scaleLabels"></div>
+    </div>
+    <script>
+        // Dynamic values for the scale labels
+        const minTemp = 32; // Minimum temperature
+        const maxTemp = 39; // Maximum temperature
+        const numberOfLabels = 8; // Total number of labels
+
+        // Calculate the temperature increment between labels
+        const increment = (maxTemp - minTemp) / (numberOfLabels - 1);
+
+        // Get the scale labels container
+        const scaleLabelsContainer = document.getElementById('scaleLabels');
+
+        // Generate and append labels to the scale labels container
+        for (let i = 0; i < numberOfLabels; i++) {
+            const labelValue = (minTemp + (increment * i)).toFixed(1) + ' °C';
+            const labelDiv = document.createElement('div');
+            labelDiv.textContent = labelValue;
+            scaleLabelsContainer.appendChild(labelDiv);
+        }
+    </script>
+</body>
+</html>

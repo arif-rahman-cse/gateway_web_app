@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>現在の温度状態</title>
+    <style>
+        body {
+            background-color: #f5f8ff;
+            font-family: Arial, sans-serif;
+        }
+
+        .custom-container {
+            padding: 10px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+
+        label {
+            font-weight: bold;
+        }
+
+        .form-control {
+            border-radius: 10px;
+        }
+
+        .color-scale {
+            display: flex;
+            margin-top: 20px;
+        }
+
+        .color-bar {
+            width: 512px;
+            height: 40px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #056BE3, #05ABEB, #77AD1E, #F9D30D, #E72A24, #AB226D);
+            margin-right: 10px;
+
+            /* Center the color bar */
+        }
+
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            width: 512px;
+            margin-top: 20px;
+        }
+
+        .scale-labels div {
+            position: relative;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .scale-labels div::before {
+            content: '▲';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .percentages {
+            display: flex;
+            justify-content: space-between;
+            width: 512px;
+            margin-top: 5px;
+        }
+
+        .percentages div {
+            font-size: 12px;
+        }
+
+        #matrixCanvas {
+            border-radius: 5px;
+            position: relative;
+            margin: 0 auto;
+
+        }
+
+        #tooltip.show {
+            opacity: 1;
+        }
+
+        #tooltip.hide {
+            opacity: 0;
+        }
+
+        .btn-primary {
+            background-color: #056BE3;
+            border-radius: 25px;
+            padding: 10px 20px;
+            border: none;
+            margin-right: 20px;
+        }
+
+        .btn-primary:hover {
+            background-color: #056BE3;
+            border-color: #056BE3;
+        }
+
+        .btn-danger {
+            background-color: #E72A24;
+            border-radius: 25px;
+            padding: 10px 20px;
+            border: none;
+        }
+
+        .btn-danger:hover {
+            background-color: #E72A24;
+            border-color: #E72A24;
+        }
+    </style>
+</head>
+
+<body class="bg-light text-dark p-3 container-fluid text-center">
+    <div class="container">
+
+        <div class="container text-center">
+            <div class="row justify-content-md-center">
+
+                <div class="col-md-auto">
+                    <h2 class="display-6">現在の温度状態</h2>
+                    <canvas id="matrixCanvas" width="512" height="512"></canvas>
+                    <div id="tooltip"
+                        style="position: absolute; display: none; background-color: #ffffff; padding: 5px; border: 1px solid #ccc; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.3); font-size: 14px;">
+                    </div>
+
+                    <div class="color-scale text-center">
+                        <div class="color-bar"></div>
+                    </div>
+                    <div class="scale-labels" id="scaleLabels"></div>
+
+                </div>
+                <div class="col col-lg-6 align-self-center">
+                    <div class="row text-center">
+                        <div class="col text-center" id="displayAvgTemp">
+                        </div>
+                    </div>
+                    <div class="row custom-container mt-3">
+
+                        <div class="row text-center mb-4">
+                            <div class="col-2 d-flex align-items-center">
+                                <label>座標</label>
+                            </div>
+                            <div class="col-5">
+                                <label>X</label>
+                            </div>
+                            <div class="col-5">
+                                <label>Y</label>
+                            </div>
+
+                        </div>
+
+                        <!-- First row -->
+                        <div class="row mb-3">
+                            <div class="col-2 d-flex align-items-center">
+                                <label>左上:</label>
+                            </div>
+                            <div class="col-5">
+                                <input type="number" class="form-control" placeholder="" id="x1Value">
+                            </div>
+                            <div class="col-5">
+                                <input type="number" class="form-control" placeholder="" id="y1Value">
+                            </div>
+                        </div>
+
+                        <!-- Second row -->
+                        <div class="row mb-3">
+                            <div class="col-2 d-flex align-items-center">
+                                <label>左下:</label>
+                            </div>
+                            <div class="col-5">
+                                <input type="number" class="form-control" placeholder="" id="x2Value">
+                            </div>
+                            <div class="col-5">
+                                <input type="number" class="form-control" placeholder="" id="y2Value">
+                            </div>
+                        </div>
+
+                        <!-- Third row -->
+                        <div class="row mb-3">
+                            <div class="col-2 d-flex align-items-center">
+                                <label>右上:</label>
+                            </div>
+                            <div class="col-5">
+                                <input type="number" class="form-control" placeholder="" id="x4Value">
+                            </div>
+                            <div class="col-5">
+                                <input type="number" class="form-control" placeholder="" id="y4Value">
+                            </div>
+                        </div>
+
+                        <!-- Fourth row -->
+                        <div class="row mb-3">
+                            <div class="col-2 d-flex align-items-center">
+                                <label>右下:</label>
+                            </div>
+                            <div class="col-5">
+                                <input type="number" class="form-control" placeholder="" id="x3Value">
+                            </div>
+                            <div class="col-5">
+                                <input type="number" class="form-control" placeholder="" id="y3Value">
+                            </div>
+                        </div>
+                        <!-- Fifth row -->
+                        <div class="row mb-3">
+                            <!-- Add two horizontal buttons with equal width and align center -->
+                            <div class="col-12">
+                                <button type="button" class="btn btn-primary" id="calculateButton">計算する</button>
+                                <button type="button" class="btn btn-danger" id="clearButton">クリア</button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        //Dataset
+        const data_set = [
+            [35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 35],
+            [36, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 36],
+            [37, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 37],
+            [38, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 38],
+            [39, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 39],
+            [35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 35],
+            [36, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 36],
+            [37, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 37],
+            [38, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 38],
+            [39, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 39],
+            [35, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 35],
+            [36, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 36],
+            [35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 35],
+            [36, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 36],
+            [37, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 37],
+            [38, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 38],
+            [36, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 36],
+            [37, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 37],
+            [35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 36, 37, 38, 39, 35, 35],
+            [36, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 36],
+            [37, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 37],
+            [38, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 38],
+            [37, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 37],
+            [38, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 38],
+            [39, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 39],
+            [35, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 35],
+            [36, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 36],
+            [37, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 37],
+            [38, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 38],
+            [39, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 39],
+            [35, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 35],
+            [36, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 32, 33, 34, 35, 36, 37, 36]
+        ]
+
+        function temperature_scale_lable() {
+            // Dynamic values for the scale labels
+            const minTemp = 32; // Minimum temperature
+            const maxTemp = 39; // Maximum temperature
+            const numberOfLabels = 8; // Total number of labels
+
+            // Calculate the temperature increment between labels
+            const increment = (maxTemp - minTemp) / (numberOfLabels - 1);
+
+            // Get the scale labels container
+            const scaleLabelsContainer = document.getElementById('scaleLabels');
+
+            // Generate and append labels to the scale labels container
+            for (let i = 0; i < numberOfLabels; i++) {
+                const labelValue = (minTemp + (increment * i)).toFixed(1) + ' °C';
+                const labelDiv = document.createElement('div');
+                labelDiv.textContent = labelValue;
+                scaleLabelsContainer.appendChild(labelDiv);
+            }
+        }
+        function generateRandomMatrixData(size = 16) {
+            const data = [];
+            const center = Math.floor(size / 2);
+
+            for (let y = 0; y < size; y++) {
+                const row = [];
+                for (let x = 0; x < size; x++) {
+                    // Calculate the distance from the center
+                    const distance = Math.max(Math.abs(center - x), Math.abs(center - y));
+
+                    // Define the range based on the distance from the center
+                    const minValue = Math.max(32, 41 - distance);
+                    const maxValue = Math.min(46, 41 - distance + 3);
+
+                    // Generate a random value within the range
+                    const value = Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue;
+                    row.push(value);
+                }
+                data.push(row);
+            }
+            //calculate average temperature of matrix
+            const averageTemperature = calculateAverageTemperatureOfMatrix(data);
+            return [data, averageTemperature];
+        }
+
+        function calculateAverageTemperatureOfMatrix(matrixData) {
+            // Calculate the average temperature of the matrix
+            let sum = 0;
+            let count = 0;
+            for (let y = 0; y < matrixData.length; y++) {
+                for (let x = 0; x < matrixData[y].length; x++) {
+                    sum += matrixData[y][x];
+                    count++;
+                }
+            }
+
+            const average = (count > 0) ? (sum / count).toFixed(2) : 0;
+
+            return average;
+        }
+
+        async function fetchMatrixData() {
+            try {
+                <!-- const response = await fetch('http://127.0.0.1:8000/api/v1/thermal-sensor-data/'); -->
+                const response = await fetch('https://cms.k-fis.com/rawdata/sensor_data?object_id=eq.54524a3c-6fdc-4bd6-a1b9-091b550c6c34&sensor_unit_columns_id=eq.cad4e3bf-4f11-47b2-9458-ebb764dfade4&order=date_time.desc&limit=1',{
+                    headers:{
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer  eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoidG9kb191c2VyIn0.MuVEqGuRCC_1ZksdeUE-fvcNV9Rja9itI0b0jUPhm6s',
+                        'body':'json'
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const result = await response.json();
+
+                // Extract the data array from the response
+                const data = result[0].value; 
+                const dataArray = JSON.parse(data);
+                //calculate average temperature of matrix
+                const averageTemperature = calculateAverageTemperatureOfMatrix(dataArray);
+                drawMatrix(size = dataArray.length, dataArray, avgTemp = averageTemperature);
+                ///return [dataArray, averageTemperature];
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+
+        function drawMatrix(size = 32, data = [], avgTemp = 0) {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            const tooltip = document.getElementById('tooltip');
+            const clearButton = document.getElementById('clearButton');
+            const calculateButton = document.getElementById('calculateButton');
+            const displayAvgTemp = document.getElementById('displayAvgTemp');
+
+            // Define colors corresponding to values
+            const colors = {
+                32: '#0571E4',
+                33: '#0589E7',
+                34: '#1DABBF',
+                35: '#6CAC30',
+                36: '#93B61B',
+                37: '#DECB10',
+                38: '#EE6F1A',
+                39: '#E22929',
+                40: '#B7245E',
+                41: '#A02367',
+                42: '#A02367',
+                43: '#A02367',
+                44: '#A02367',
+                45: '#A02367'
+            };
+
+
+            // Generate random matrix data
+            //const matrixData = fetchMatrixData();
+            //const data = matrixData[0];
+            //const avgTemp = matrixData[1];
+            console.log(`Average Temperature: ${avgTemp} °C Data: ${data} size: ${size}`);
+            displayMatrixAvgTemp();
+
+            // Calculate the pixel size based on the canvas size
+            const pixelSize = canvas.width / size;
+            console.log(`pixel size matrix: ${pixelSize}`);
+            let startX, startY, isSelecting = false;
+            let selection = null; // Store the selection area
+            let customAreaCoordinates = null; // Store custom area coordinates
+
+
+            // Draw the matrix and the selection rectangle
+            function draw() {
+                // Draw the matrix
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        // Get the value
+                        const value = data[y][x];
+                        // Set the color based on the value
+                        ctx.fillStyle = colors[value] || '#2C2C2C';
+                        // Draw the pixel
+                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                    }
+                }
+
+                // Draw the selection rectangle if it exists
+                if (selection) {
+                    const { startX, startY, endX, endY } = selection;
+                    ctx.strokeStyle = '#FFFFFF'; // Semi-transparent white
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(startX * pixelSize, startY * pixelSize, (endX - startX + 1) * pixelSize, (endY - startY + 1) * pixelSize);
+                }
+
+                // If there is a custom area, redraw it
+                // If there is a custom area, redraw it
+                if (customAreaCoordinates) {
+
+                    console.log(`customAreaCoordinates: ${customAreaCoordinates}`);
+
+                    const { x1, y1, x2, y2, x3, y3, x4, y4 } = customAreaCoordinates;
+
+                    ctx.strokeStyle = '#FFFFFF'; // Semi-transparent white
+                    ctx.lineWidth = 2;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';  // Semi-transparent white for the fill
+                    ctx.beginPath();
+                    ctx.moveTo(x1 * pixelSize, y1 * pixelSize);  // Move to the first coordinate
+                    ctx.lineTo(x2 * pixelSize, (y2 + 1) * pixelSize);  // Draw line to the second coordinate
+                    ctx.lineTo((x3 + 1) * pixelSize, (y3 + 1) * pixelSize);  // Draw line to the third coordinate
+                    ctx.lineTo((x4 + 1) * pixelSize, y4 * pixelSize);  // Draw line to the fourth coordinate
+                    ctx.closePath();  // Close the path (automatically draws a line from the last point to the first)
+
+                    // Fill the area and stroke the outline
+                    ctx.fill();  // Fill the polygon with the fill color
+                    ctx.stroke();  // Draw the outline
+                }
+
+            }
+
+            draw();
+
+
+            function drawCustomAreaOnCanvas(polygon) {
+                //const canvas = document.getElementById('matrixCanvas');
+                //const ctx = canvas.getContext('2d');
+                //const size = 31; // Assuming this is the matrix size (adjust as needed)
+                //const pixelSize = canvas.width / size;
+                //console.log(`(x1, y1): (${x1}, ${y1}) (x2, y2): (${x2}, ${y2}) (x3, y3): (${x3}, ${y3}) (x4, y4): (${x4}, ${y4})`);
+                //console.log(`canvas width: ${canvas.width}, canvas height: ${canvas.height}, Pixel size: ${pixelSize}`);
+                //console.log(`TopLeft: (${x1 * pixelSize}, ${y1 * pixelSize}) BottomLeft: (${x2 * pixelSize}, ${y2 * pixelSize}) TopRight: (${x3 * pixelSize}, ${y3 * pixelSize}) BottomRight: (${x4 * pixelSize}, ${y4 * pixelSize})`);
+
+                //clear previous rectangle area
+                selection = null;
+                customAreaCoordinates = null;
+                // Clear the canvas before drawing
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                // Redraw the matrix (you should have your matrix data already loaded)
+                draw();
+
+                // Set styles for the custom area
+                ctx.strokeStyle = '#FFFFFF';  // White outline for the custom area
+                ctx.lineWidth = 2;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';  // Semi-transparent white for the fill
+
+                //Store the custom area coordinates globaly
+                customAreaCoordinates = {
+                    x1: polygon[0][0],
+                    y1: polygon[0][1],
+                    x2: polygon[1][0],
+                    y2: polygon[1][1],
+                    x3: polygon[2][0],
+                    y3: polygon[2][1],
+                    x4: polygon[3][0],
+                    y4: polygon[3][1],
+                };
+
+                // Start drawing the polygon
+                ctx.beginPath();
+                ctx.moveTo(polygon[0][0] * pixelSize, polygon[0][1] * pixelSize);  // Move to the first coordinate
+                ctx.lineTo(polygon[1][0] * pixelSize, (polygon[1][1] + 1) * pixelSize);  // Draw line to the second coordinate
+                ctx.lineTo((polygon[2][0] + 1) * pixelSize, (polygon[2][1] + 1) * pixelSize);  // Draw line to the third coordinate
+                ctx.lineTo((polygon[3][0] + 1) * pixelSize, polygon[3][1] * pixelSize);  // Draw line to the fourth coordinate
+                ctx.closePath();  // Close the path (automatically draws a line from the last point to the first)
+
+                // Fill the area and stroke the outline
+                ctx.fill();  // Fill the polygon with the fill color
+                ctx.stroke();  // Draw the outline
+
+                // Calculate the average temperature for the custom area
+                //const avgTemp = calculateCustomAreaAvgTemp(x1, y1, x2, y2, x3, y3, x4, y4);
+
+                // Display the average temperature in the tooltip or any other element
+                //selectedAreaAvgTempData(avgTemp, x1, y1, x4, y4);
+
+                // Calculate the average temperature for the custom polygon
+                const avgTemp = calculateCustomPolygonAvgTemp(polygon);
+
+                // Display the average temperature in the tooltip or any other element
+                selectedCustomAreaAvgTempData(avgTemp,polygon);
+            }
+
+
+            // Display tooltip on hover and selection
+            canvas.addEventListener('mousemove', (event) => {
+                // Get the mouse position relative to the canvas
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                // Calculate which pixel the mouse is over
+                const x = Math.min(size - 1, Math.max(0, Math.floor(mouseX / pixelSize)));
+                const y = Math.min(size - 1, Math.max(0, Math.floor(mouseY / pixelSize)));
+
+                // Ensure the coordinates are within bounds
+                if (x >= 0 && x < size && y >= 0 && y < size) {
+                    // Get the value at the mouse position
+                    const value = data[y][x];
+
+                    if (!isSelecting) {
+                        // Set tooltip content for hover
+                        tooltip.innerHTML = `温度: ${value} °C<br> 位置: (${x}, ${y})`;
+
+                        // Position the tooltip
+                        tooltip.style.left = `${event.pageX + 10}px`;
+                        tooltip.style.top = `${event.pageY + 10}px`;
+                        tooltip.style.display = 'block';
+
+                        // Highlight the hovered pixel
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        draw();
+                        ctx.fillStyle = '#FFFFFF'; // Semi-transparent white
+                        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+                    } else {
+                        // When selecting, show selection area and average temperature
+                        //Selection can be two types: rectangle or custom area
+
+                        const endX = x;
+                        const endY = y;
+
+                        // Store the selection area
+                        selection = { startX, startY, endX, endY };
+
+                        // Clear the canvas and redraw the matrix
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        draw();
+
+                        /*
+
+                        // Calculate the average temperature in the selected area
+                        let sum = 0, count = 0;
+                        for (let y = Math.min(startY, endY); y <= Math.max(startY, endY); y++) {
+                            for (let x = Math.min(startX, endX); x <= Math.max(startX, endX); x++) {
+                                if (x >= 0 && x < size && y >= 0 && y < size) {
+                                    sum += data[y][x];
+                                    count++;
+                                }
+                            }
+                        }
+
+                        */
+                        //const average = (count > 0) ? (sum / count).toFixed(2) : 0;
+
+                        // Set tooltip content for selection
+                        //tooltip.innerHTML = `平均気温: ${average} °C<br> エリア: (${Math.min(startX, endX)}, ${Math.min(startY, endY)}) から (${Math.max(startX, endX)}, ${Math.max(startY, endY)})`;
+
+                        // Update tooltip position
+                        //tooltip.style.left = `${event.pageX + 10}px`;
+                        //tooltip.style.top = `${event.pageY + 10}px`;
+                        //tooltip.style.display = 'block';
+                    }
+                } else {
+                    if (!isSelecting) {
+                        // Hide tooltip if mouse is out of bounds and not selecting
+                        tooltip.style.display = 'none';
+                    }
+                }
+            });
+
+            // Mouse down event to start selecting
+            canvas.addEventListener('mousedown', (event) => {
+                const rect = canvas.getBoundingClientRect();
+                startX = Math.min(size - 1, Math.max(0, Math.floor((event.clientX - rect.left) / pixelSize)));
+                startY = Math.min(size - 1, Math.max(0, Math.floor((event.clientY - rect.top) / pixelSize)));
+                //console.log(`startX: ${startX}, startY: ${startY}`);
+                isSelecting = true;
+            });
+
+            // Mouse up event to finish selecting
+            canvas.addEventListener('mouseup', () => {
+                isSelecting = false;
+                // Keep the tooltip visible with the final selected area
+                if (selection) {
+                    const { startX, startY, endX, endY } = selection;
+                    // Calculate the average temperature in the selected area
+                    let sum = 0, count = 0;
+                    for (let y = Math.min(startY, endY); y <= Math.max(startY, endY); y++) {
+                        for (let x = Math.min(startX, endX); x <= Math.max(startX, endX); x++) {
+                            if (x >= 0 && x < size && y >= 0 && y < size) {
+                                sum += data[y][x];
+                                count++;
+                            }
+                        }
+                    }
+                    const average = (count > 0) ? (sum / count).toFixed(2) : 0;
+                    console.log(`average: ${average}, startX: ${startX}, startY: ${startY}, endX: ${endX}, endY: ${endY}`);
+                    // Set tooltip content for final selection
+                    //tooltip.innerHTML = `平均気温: ${average} °C<br> エリア: (${Math.min(startX, endX)}, ${Math.min(startY, endY)}) から (${Math.max(startX, endX)}, ${Math.max(startY, endY)})`;
+                    //tooltip.style.display = 'block';
+                    selectedAreaAvgTempData(average, startX, startY, endX, endY);
+
+                }
+            });
+
+            // Hide tooltip when mouse leaves the canvas
+            canvas.addEventListener('mouseout', () => {
+                if (!isSelecting) {
+                    tooltip.style.display = 'none';
+                }
+            });
+
+            // Click outside the canvas to clear the selection
+            clearButton.addEventListener('click', (event) => {
+                if (!canvas.contains(event.target)) {
+                    selection = null; // Clear the selection
+                    customAreaCoordinates = null;
+                    tooltip.style.display = 'none'; // Hide the tooltip
+                    displayMatrixAvgTemp();
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    draw(); // Redraw the canvas without the selection
+
+                }
+            });
+
+            calculateButton.addEventListener('click', (event) => {
+                console.log("calulate user define area!")
+                //get the cordinate value from input fields
+
+                //Top Left coordinate
+                const x1Value = parseInt(document.getElementById('x1Value').value, 10);
+                const y1Value = parseInt(document.getElementById('y1Value').value, 10);
+
+                //Bottom Left coordinate
+                const x2Value = parseInt(document.getElementById('x2Value').value, 10);
+                const y2Value = parseInt(document.getElementById('y2Value').value, 10);
+
+                //Top Right coordinate
+                const x4Value = parseInt(document.getElementById('x4Value').value, 10);
+                const y4Value = parseInt(document.getElementById('y4Value').value, 10);
+
+                //Bottom Right coordinate
+                const x3Value = parseInt(document.getElementById('x3Value').value, 10);
+                const y3Value = parseInt(document.getElementById('y3Value').value, 10);
+
+                //const y0Value = parent(document.getElementById('y0Value').value, 10);
+                console.log(`Value0 (x1, y1) : (${x1Value}, ${y1Value}) `)
+                console.log(`Value1 (x2, y2) : (${x2Value}, ${y2Value}) `)
+
+                console.log(`Value2 (x3, y3) : (${x3Value}, ${y3Value}) `)
+                console.log(`Value3 (x4, y4) : (${x4Value}, ${y4Value}) `)
+
+                const polygon = [
+                    [x1Value, y1Value],   // Top-left
+                    [x2Value, y2Value],  // Bottom-left
+                    [x3Value, y3Value], // Bottom-right
+                    [x4Value, y4Value]   // Top-right
+                ];
+
+                // draw the area on the canvas with 4 coordinates 
+                drawCustomAreaOnCanvas(polygon);
+
+
+            })
+            //set dynamic text value on displayAvgTemp
+            function selectedAreaAvgTempData(average, startX, startY, endX, endY) {
+                console.log('selectedAreaAvgTempData:', average, startX, startY, endX, endY);
+                displayAvgTemp.innerHTML = "";
+                //displayAvgTemp.style.border = "1px solid white";
+                displayAvgTemp.style.padding = "10px";
+
+                // set background color depending on the average temperature value.
+                //convert average temperature vale to integer and set background color accordingly  
+                const tempAvgTemp = parseInt(average);
+                displayAvgTemp.style.backgroundColor = colors[tempAvgTemp];
+                displayAvgTemp.style.borderRadius = "10px";
+                displayAvgTemp.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.1)";
+
+                var firstChild = document.createElement("span");
+                firstChild.innerHTML = `平均気温: ${average} °C`;
+                firstChild.style.fontSize = "20px";
+                firstChild.style.fontWeight = "bold";
+                firstChild.style.color = "#fff"
+
+                var secondChild = document.createElement("span");
+                secondChild.innerHTML = `<strong>エリア:</strong> (${Math.min(startX, endX)}, ${Math.min(startY, endY)}) から (${Math.max(startX, endX)}, ${Math.max(startY, endY)})`;
+
+                displayAvgTemp.appendChild(firstChild);
+                displayAvgTemp.appendChild(document.createElement("br"));
+                displayAvgTemp.appendChild(secondChild);
+
+            }
+
+            function selectedCustomAreaAvgTempData(average, polygon) {
+                displayAvgTemp.innerHTML = "";
+                displayAvgTemp.style.padding = "10px";
+            
+                // Set background color based on the average temperature
+                const tempAvgTemp = parseInt(average);
+                displayAvgTemp.style.backgroundColor = colors[tempAvgTemp];
+                displayAvgTemp.style.borderRadius = "10px";
+                displayAvgTemp.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.1)";
+            
+                var firstChild = document.createElement("span");
+                firstChild.innerHTML = `平均気温: ${average} °C`;
+                firstChild.style.fontSize = "20px";
+                firstChild.style.fontWeight = "bold";
+                firstChild.style.color = "#fff";
+            
+                // Convert the polygon vertices into a readable string for display
+                var secondChild = document.createElement("span");
+                const polygonText = polygon.map(p => `(${p[0]}, ${p[1]})`).join(' -> ');
+                secondChild.innerHTML = `<strong>エリア:</strong> ${polygonText}`;
+            
+                displayAvgTemp.appendChild(firstChild);
+                displayAvgTemp.appendChild(document.createElement("br"));
+                displayAvgTemp.appendChild(secondChild);
+            }
+            
+            function isPointInPolygon(polygon, px, py) {
+                let isInside = false;
+                const n = polygon.length;
+            
+                for (let i = 0, j = n - 1; i < n; j = i++) {
+                    const xi = polygon[i][0], yi = polygon[i][1];
+                    const xj = polygon[j][0], yj = polygon[j][1];
+            
+                    const intersect = ((yi > py) !== (yj > py)) && 
+                                      (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+            
+                    // Explicitly check if point lies on an edge
+                    const isOnEdge = (py - yi) * (xj - xi) === (px - xi) * (yj - yi) &&
+                                     Math.min(xi, xj) <= px && px <= Math.max(xi, xj) &&
+                                     Math.min(yi, yj) <= py && py <= Math.max(yi, yj);
+            
+                    if (intersect || isOnEdge) {
+                        isInside = !isInside;
+                    }
+                }
+            
+                return isInside;
+            }
+            
+
+            function calculateCustomPolygonAvgTempWithSubPixels(polygon, subPixelResolution = 2) {
+                const size = 32; // Matrix size (5x5 in this case)
+                const subPixelStep = 1 / subPixelResolution;
+                let sum = 0;
+                let count = 0;
+            
+                // Loop through each point in the matrix
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        let pixelSum = 0;
+                        let pixelCount = 0;
+            
+                        // Sub-pixel sampling: iterate over sub-pixels within each pixel
+                        for (let subY = 0; subY < subPixelResolution; subY++) {
+                            for (let subX = 0; subX < subPixelResolution; subX++) {
+                                const subPixelX = x + subX * subPixelStep;
+                                const subPixelY = y + subY * subPixelStep;
+            
+                                // Check if the sub-pixel is inside the polygon
+                                if (isPointInPolygon(polygon, subPixelX, subPixelY)) {
+                                    pixelSum += data[y][x];  // Use the pixel's value
+                                    pixelCount++;
+                                }
+                            }
+                        }
+            
+                        // Average the value for this pixel based on sub-pixels
+                        if (pixelCount > 0) {
+                            sum += pixelSum / pixelCount;
+                            count++;
+                        }
+                    }
+                }
+            
+                // Calculate the average temperature for the polygon
+                const average = (count > 0) ? (sum / count).toFixed(2) : 0;
+                return average;
+            }
+            
+
+            function calculateCustomPolygonAvgTemp() {
+                //console.log('calculateCustomPolygonAvgTemp:', polygon);
+                //const size = 32; // Assuming this is the matrix size (adjust as needed)
+                //const pixelSize = canvas.width / size;
+
+                const polygon = [
+                    [13, 14],   // Top-left
+                    [13, 19],  // Bottom-left
+                    [17, 19] // Bottom-right
+                    
+                ];
+
+                let sum = 0;
+                let count = 0;
+
+                // Loop through each point in the matrix
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        // Check if the point (x, y) is inside the polygon
+                        if (isPointInPolygon(polygon, x, y)) {
+                            console.log(`Point (${x}, ${y}) is inside the polygon`);
+                            sum += data[y][x];  // Add the temperature value
+                            count++;
+                        }
+                    }
+                }
+
+                // Calculate the average temperature for the polygon
+                const average = (count > 0) ? (sum / count).toFixed(2) : 0;
+                console.log(`Sum = ${sum}, Count = ${count}, Average = ${average}`);
+                return average;
+            }
+
+
+            function displayMatrixAvgTemp() {
+                displayAvgTemp.innerHTML = "";
+                //displayAvgTemp.style.border = "1px solid white";
+                displayAvgTemp.style.padding = "10px";
+                const tempAvgTemp = parseInt(avgTemp);
+                displayAvgTemp.style.backgroundColor = colors[tempAvgTemp];
+                displayAvgTemp.style.borderRadius = "10px";
+                displayAvgTemp.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.1)";
+
+                var firstChild = document.createElement("span");
+                firstChild.innerHTML = `平均気温: ${avgTemp} °C`;
+                firstChild.style.fontSize = "20px";
+                firstChild.style.fontWeight = "bold";
+                firstChild.style.color = "#fff"
+                displayAvgTemp.appendChild(firstChild);
+            }
+        }
+        
+        //drawMatrix();
+        fetchMatrixData();
+        temperature_scale_lable();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
