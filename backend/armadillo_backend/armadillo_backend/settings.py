@@ -96,7 +96,7 @@ DATABASES = {
         'NAME': 'k-fis_db',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': '192.168.10.203',
+        'HOST': 'localhost',
         'PORT': 5432,
     }
 }
